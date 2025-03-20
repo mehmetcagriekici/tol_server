@@ -15,5 +15,5 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000, //timeout if connection takes longer than 2 seconds
 });
 
-//exoırt the connection pool
+//export the connection pool
 export default pool;
