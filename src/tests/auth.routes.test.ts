@@ -11,7 +11,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await pool.end();
+  // await pool.end(); //Run only while running individually
 });
 
 describe("Authentication API Tests", () => {

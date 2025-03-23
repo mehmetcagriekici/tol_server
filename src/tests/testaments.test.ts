@@ -78,7 +78,7 @@ describe("Testaments API Tests", () => {
    * Ensure an authorized user with SELECT permission can retrieve testaments 200 OK
    * All authenticated users are allowed to SELECT from the testaments
    */
-  describe("Testaments API Tests", () => {
+  describe("GET /testaments", () => {
     test("Should return all testaments for an authorized user", async () => {
       const res = await request(app)
         .get("/testaments/all")
@@ -112,7 +112,7 @@ describe("Testaments API Tests", () => {
 
     test("Should return 404 Not Found for a non-existent testament", async () => {
       const res = await request(app)
-        .get(`/testaments/single/8f3a91d5-4b9e-438e-bfa1-abcdef123456`) //Random UUID
+        .get(`/testaments/single/e0bc9507-2f22-460b-93cf-5f2efa1c15e1`) //Random UUID
         .set("Authorization", `Bearer ${token}`);
 
       expect(res.status).toBe(404);
@@ -218,7 +218,7 @@ describe("Testaments API Tests", () => {
     test("Should return 404 Not Found if the testament does not exist", async () => {
       //update the existing testament
       const res = await request(app)
-        .put(`/testaments/modified/8f3a91d5-3b9e-438e-bfa1-abcdef123456`) //random valid uuid
+        .put(`/testaments/modified/0e4bacc1-4741-4d4e-87f6-35d0bf568b73`) //random valid uuid
         .set("Authorization", `Bearer ${creatorToken}`)
         .send({ title: "Updated Testament Title", content: {}, members: {} });
 
@@ -277,7 +277,7 @@ describe("Testaments API Tests", () => {
     test("Should return 404 Not Found if the testament does not exist", async () => {
       const res = await request(app)
         .delete(
-          `/testaments/expired/8f3a91d5-3b9e-438e-bfa1-abcaef123451` //Random UUID
+          `/testaments/expired/928eef44-a4c7-49f8-a028-4b204b437747` //Random UUID
         )
         .set("Authorization", `Bearer ${creatorToken}`);
 
@@ -301,6 +301,6 @@ describe("Testaments API Tests", () => {
     await pool.query("DELETE FROM romans");
 
     //close the database connection
-    await pool.end();
+    // await pool.end(); //Run only while running individually
   });
 });

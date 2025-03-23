@@ -15,9 +15,8 @@ import {
 } from "@src/middleware/testamentsMiddleware";
 import { authenticate } from "@src/middleware/authMiddleware";
 
-const router = Router();
-
 //routes
+const router = Router();
 
 //Requires authorization, canReadTestaments ensures use has SELECT permission
 //Calls getAllTestaments to fetch all testaments

@@ -7,6 +7,7 @@ import {
   updateTestament,
   deleteTestament,
 } from "@src/services/testaments.service";
+import { testUuid } from "@src/utils/regexId";
 
 /**
  * controller to fetch all testaments
@@ -37,12 +38,9 @@ export const getTestamentByIdController = async (
   res: Response
 ) => {
   try {
-    const regexUuid =
-      /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gm;
-
     const { id } = req.params;
     //id is not in valid uuid syntax
-    if (!regexUuid.test(id)) {
+    if (!testUuid(id)) {
       res.status(400).json({ error: "Invalid testament ID" });
       return;
     }
@@ -52,7 +50,6 @@ export const getTestamentByIdController = async (
     //Not Found
     if (!testament) {
       res.status(404).json({ error: "Testament not found" });
-
       return;
     }
 
@@ -79,7 +76,6 @@ export const createTestamentController = async (
     //members are optional during creation, default empty object in the dabase
     if (!title || !content || !created_by) {
       res.status(400).json({ error: "Missing required fields" });
-
       return;
     }
 
@@ -110,11 +106,8 @@ export const updateTestamentController = async (
     const { id } = req.params;
     const { title, content, members } = req.body;
 
-    const regexUuid =
-      /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gm;
-
     //id is not in valid uuid syntax
-    if (!regexUuid.test(id)) {
+    if (!testUuid(id)) {
       res.status(400).json({ error: "Invalid testament ID" });
       return;
     }
@@ -124,7 +117,6 @@ export const updateTestamentController = async (
       res
         .status(400)
         .json({ error: "At least one field must be provided for update" });
-
       return;
     }
 
@@ -167,11 +159,8 @@ export const deleteTestamentController = async (
   try {
     const { id } = req.params;
 
-    const regexUuid =
-      /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gm;
-
     //id is not in valid uuid syntax
-    if (!regexUuid.test(id)) {
+    if (!testUuid(id)) {
       res.status(400).json({ error: "Invalid testament ID" });
       return;
     }
@@ -180,7 +169,6 @@ export const deleteTestamentController = async (
 
     if (!deleted) {
       res.status(404).json({ error: "Testament not found" });
-
       return;
     }
 

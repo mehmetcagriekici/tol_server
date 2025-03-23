@@ -17,7 +17,7 @@ export interface Testament {
   id: string;
   title: string;
   content: TestamentContent;
-  members: TestamentMembers;
+  members: { [id: string]: TestamentMembers };
   created_by: string;
   created_at: Date;
   updated_at: Date;

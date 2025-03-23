@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import authRoutes from "@src/routes/auth.routes";
 import testamentsRoutes from "@src/routes/testaments.routes";
+import versesRoutes from "@src/routes/verses.routes";
 
 const app = express();
 
@@ -16,5 +17,7 @@ app.use(helmet()); //Secure HTTP headers
 app.use("/auth", authRoutes);
 //testaments
 app.use("/testaments", testamentsRoutes);
+//verses
+app.use("/verses", versesRoutes);
 
 export default app;
