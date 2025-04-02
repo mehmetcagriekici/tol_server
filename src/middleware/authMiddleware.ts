@@ -2,10 +2,12 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "@src/utils/jwt";
 import { JwtPayload } from "jsonwebtoken";
+import { PoolClient } from "pg";
 
 //extend Request interface with user
 export interface AuthRequest extends Request {
-  user?: { userId: string };
+  user?: { userId: string; email?: string };
+  dbClient?: PoolClient;
 }
 
 /**
@@ -16,18 +18,24 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.header("Authorization");
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  // Find the token (Authorization or cookies)
+  const authHeader = req.header("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
     res.status(401).json({ message: "Access denied. No token provided" });
     return;
   }
 
-  const token = authHeader.split(" ")[1];
-
   try {
-    const decoded = verifyToken(token) as JwtPayload;
-    req.user = { userId: decoded.userId };
+    const decoded = verifyToken("token") as JwtPayload;
+    req.user = { userId: decoded.userId, email: decoded.email };
     next();
   } catch (error) {
     res.status(401).json({ message: error.message });

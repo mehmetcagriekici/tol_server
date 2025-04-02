@@ -1,5 +1,5 @@
 //imports
-import { Request, Response } from "express";
+import { Response } from "express";
 import {
   getAllTestaments,
   getTestamentById,
@@ -8,6 +8,7 @@ import {
   deleteTestament,
 } from "@src/services/testaments.service";
 import { testUuid } from "@src/utils/regexId";
+import { AuthRequest } from "@src/middleware/authMiddleware";
 
 /**
  * controller to fetch all testaments
@@ -16,11 +17,19 @@ import { testUuid } from "@src/utils/regexId";
  * @returns all testaments from the database
  */
 export const getAllTestamentsController = async (
-  _req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
-    const testaments = await getAllTestaments();
+    //get the client from the request
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
+
+    const testaments = await getAllTestaments(client);
     res.json(testaments);
   } catch (error) {
     res.status(500).json({ error });
@@ -34,18 +43,24 @@ export const getAllTestamentsController = async (
  * @returns a single testament
  */
 export const getTestamentByIdController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
     const { id } = req.params;
+    const client = req.dbClient;
     //id is not in valid uuid syntax
     if (!testUuid(id)) {
       res.status(400).json({ error: "Invalid testament ID" });
       return;
     }
 
-    const testament = await getTestamentById(id);
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
+
+    const testament = await getTestamentById(id, client);
 
     //Not Found
     if (!testament) {
@@ -66,11 +81,17 @@ export const getTestamentByIdController = async (
  * @returns the newly created testament
  */
 export const createTestamentController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
     const { title, content, created_by, members } = req.body;
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //basic validation
     //members are optional during creation, default empty object in the dabase
@@ -83,7 +104,8 @@ export const createTestamentController = async (
       title,
       content,
       created_by,
-      members
+      members,
+      client
     );
 
     res.status(201).json(newTestament);
@@ -99,12 +121,18 @@ export const createTestamentController = async (
  * @returns updated testament
  */
 export const updateTestamentController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
     const { id } = req.params;
     const { title, content, members } = req.body;
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //id is not in valid uuid syntax
     if (!testUuid(id)) {
@@ -120,7 +148,7 @@ export const updateTestamentController = async (
       return;
     }
 
-    const existingTestament = await getTestamentById(id);
+    const existingTestament = await getTestamentById(id, client);
 
     if (!existingTestament) {
       res.status(404).json({ error: "Testament not found" });
@@ -137,7 +165,8 @@ export const updateTestamentController = async (
       id,
       updatedTitle,
       updatedContent,
-      updatedMembers
+      updatedMembers,
+      client
     );
 
     res.json(updatedTestament);
@@ -153,11 +182,22 @@ export const updateTestamentController = async (
  * @returns success message
  */
 export const deleteTestamentController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
     const { id } = req.params;
+    const client = req.dbClient;
+
+    const { rows } = await req.dbClient!.query(
+      "SELECT current_setting('myapp.user_id') as user_id"
+    );
+    console.log("Session user_id:", rows[0].user_id);
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //id is not in valid uuid syntax
     if (!testUuid(id)) {
@@ -165,7 +205,7 @@ export const deleteTestamentController = async (
       return;
     }
 
-    const deleted = await deleteTestament(id);
+    const deleted = await deleteTestament(id, client);
 
     if (!deleted) {
       res.status(404).json({ error: "Testament not found" });

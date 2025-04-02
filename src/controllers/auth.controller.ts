@@ -16,11 +16,19 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    //hash and store the user
-    const user = await registerUser(email, username, password);
+    //hash and store the user and generate a token
+    const data = await registerUser(email, username, password);
+
+    //set the cookie
+    res.cookie("token", data.token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false, // true in production
+      path: "/",
+    });
 
     //return user info (excluding the password)
-    res.status(201).json({ message: "User registered successfully", user });
+    res.status(201).json({ message: "User registered successfully", ...data });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -42,6 +50,14 @@ export const login = async (req: Request, res: Response) => {
 
     //check credentials and generate a JWT token
     const data = await loginUser(email, password);
+
+    //set the cookie
+    res.cookie("token", data.token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false, // true in production
+      path: "/",
+    });
     //return user
     res.json({ message: "Login successful", ...data });
   } catch (error) {

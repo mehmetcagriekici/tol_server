@@ -2,7 +2,6 @@
 import pool from "@src/config/db";
 import { hashPassword, comparePassword } from "@src/utils/password";
 import { generateToken } from "@src/utils/jwt";
-import format from "pg-format";
 
 /**
  * Registers a new user in the database
@@ -26,7 +25,14 @@ export const registerUser = async (
     [email, username, hashedPassword]
   );
 
-  return result.rows[0]; //Return the user details (without password)
+  const user = result.rows[0];
+
+  const token = generateToken(user.id);
+
+  return {
+    token,
+    user: { id: user.id, email: user.email, username: user.username },
+  }; //Return the user and the token
 };
 
 /**
@@ -46,14 +52,6 @@ export const loginUser = async (email: string, password: string) => {
   const isMatch = await comparePassword(password, user.password);
 
   if (!isMatch) throw new Error("Invalid credentials");
-
-  //prevent SQL injection
-  const query = format(
-    `SELECT set_config('myapp.user_email', %L, false)`,
-    email
-  );
-  //Set session variable for RLS
-  await pool.query(query);
 
   //Generate JWT
   const token = generateToken(user.id);

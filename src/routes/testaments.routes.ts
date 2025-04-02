@@ -14,19 +14,27 @@ import {
   canModifyTestament,
 } from "@src/middleware/testamentsMiddleware";
 import { authenticate } from "@src/middleware/authMiddleware";
+import { attachDbClient } from "@src/middleware/attachDbClientMiddleware";
 
 //routes
 const router = Router();
 
 //Requires authorization, canReadTestaments ensures use has SELECT permission
 //Calls getAllTestaments to fetch all testaments
-router.get("/all", authenticate, canReadTestaments, getAllTestamentsController);
+router.get(
+  "/all",
+  authenticate,
+  attachDbClient,
+  canReadTestaments,
+  getAllTestamentsController
+);
 
 //Requires authorization, canReadTestaments ensures use has SELECT permission
 //Calls getTestamentById to fetch a specific testament
 router.get(
   "/single/:id",
   authenticate,
+  attachDbClient,
   canReadTestaments,
   getTestamentByIdController
 );
@@ -36,6 +44,7 @@ router.get(
 router.post(
   "/new",
   authenticate,
+  attachDbClient,
   canCreateTestament,
   createTestamentController
 );
@@ -45,6 +54,7 @@ router.post(
 router.put(
   "/modified/:id",
   authenticate,
+  attachDbClient,
   canModifyTestament,
   updateTestamentController
 );
@@ -54,6 +64,7 @@ router.put(
 router.delete(
   "/expired/:id",
   authenticate,
+  attachDbClient,
   canDeleteTestament,
   deleteTestamentController
 );

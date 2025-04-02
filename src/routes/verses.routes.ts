@@ -14,6 +14,7 @@ import {
   getVerseByIdController,
   updateVerseController,
 } from "@src/controllers/verses.controller";
+import { attachDbClient } from "@src/middleware/attachDbClientMiddleware";
 
 //verses routes
 //authentication middleare + verses RBAC middleware
@@ -23,6 +24,7 @@ const router = Router();
 router.get(
   "/:testament_id",
   authenticate,
+  attachDbClient,
   canReadVerses,
   getAllVersesController
 );
@@ -31,17 +33,25 @@ router.get(
 router.get(
   "/:testament_id/:verse_id",
   authenticate,
+  attachDbClient,
   canReadVerses,
   getVerseByIdController
 );
 
 //route to create a verse
-router.post("/new", authenticate, canCreateVerses, createVerseController);
+router.post(
+  "/new",
+  authenticate,
+  attachDbClient,
+  canCreateVerses,
+  createVerseController
+);
 
 //route to update verses
 router.put(
   "/updated/:testament_id/:verse_id",
   authenticate,
+  attachDbClient,
   canUpdateVerses,
   updateVerseController
 );
@@ -50,6 +60,7 @@ router.put(
 router.delete(
   "/deleted/:testament_id/:verse_id",
   authenticate,
+  attachDbClient,
   canDeleteVerses,
   deleteVerseController
 );

@@ -1,4 +1,5 @@
 //imports
+import { AuthRequest } from "@src/middleware/authMiddleware";
 import {
   createVerse,
   deleteVerse,
@@ -7,7 +8,7 @@ import {
   updateVerse,
 } from "@src/services/verses.service";
 import { testUuid } from "@src/utils/regexId";
-import { Request, Response } from "express";
+import { Response } from "express";
 
 /**
  * Get all verses from a testament
@@ -15,10 +16,19 @@ import { Request, Response } from "express";
  * @param res - server response
  * @returns all the verses inside the testament
  */
-export const getAllVersesController = async (req: Request, res: Response) => {
+export const getAllVersesController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     //get the testament id from the request URL
     const { testament_id } = req.params;
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //check if the testament id exists, a verse can not exist without a testament
     if (!testament_id) {
@@ -34,7 +44,7 @@ export const getAllVersesController = async (req: Request, res: Response) => {
     }
 
     //get the verses
-    const verses = await getAllVerses(testament_id);
+    const verses = await getAllVerses(testament_id, client);
     res.json(verses);
   } catch (error) {
     //internal server error
@@ -48,10 +58,19 @@ export const getAllVersesController = async (req: Request, res: Response) => {
  * @param res - the server response
  * @returns a single verse
  */
-export const getVerseByIdController = async (req: Request, res: Response) => {
+export const getVerseByIdController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     //get the id from the params
     const { verse_id } = req.params;
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //check if the verse id is in valid format
     if (!testUuid(verse_id)) {
@@ -60,7 +79,7 @@ export const getVerseByIdController = async (req: Request, res: Response) => {
     }
 
     //get the verse
-    const verse = await getVerseById(verse_id);
+    const verse = await getVerseById(verse_id, client);
 
     //check if the verse exists (null otherwise)
     if (!verse) {
@@ -83,11 +102,21 @@ export const getVerseByIdController = async (req: Request, res: Response) => {
  * @param res - server response
  * @returns the newly created verse
  */
-export const createVerseController = async (req: Request, res: Response) => {
+export const createVerseController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     //get the required parts from the request body
     const { subtitle, content, created_by, subscribers, testament_id } =
       req.body;
+
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //check if the testament_id is in valid format
     if (!testUuid(testament_id)) {
@@ -106,7 +135,8 @@ export const createVerseController = async (req: Request, res: Response) => {
       content,
       created_by,
       subscribers,
-      testament_id
+      testament_id,
+      client
     );
     //send the response with 201
     res.status(201).json(newVerse);
@@ -122,10 +152,20 @@ export const createVerseController = async (req: Request, res: Response) => {
  * @param res - the server response
  * @returns updated verse
  */
-export const updateVerseController = async (req: Request, res: Response) => {
+export const updateVerseController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     //get the verse id from the params
     const { verse_id } = req.params;
+
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
 
     //check if the id is in valid format
     if (!testUuid(verse_id)) {
@@ -134,7 +174,7 @@ export const updateVerseController = async (req: Request, res: Response) => {
     }
 
     //get the current verse that will be updated
-    const oldVerse = await getVerseById(verse_id);
+    const oldVerse = await getVerseById(verse_id, client);
 
     //check if the oldVerse exist
     if (!oldVerse) {
@@ -167,7 +207,8 @@ export const updateVerseController = async (req: Request, res: Response) => {
       verse_id,
       updatedSubtitle,
       updatedContent,
-      updatedSubscribers
+      updatedSubscribers,
+      client
     );
 
     //send the updated verse
@@ -184,10 +225,20 @@ export const updateVerseController = async (req: Request, res: Response) => {
  * @param res - ther server response
  * @returns a success message
  */
-export const deleteVerseController = async (req: Request, res: Response) => {
+export const deleteVerseController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     //get the verse id from the request URL
     const { verse_id } = req.params;
+    const client = req.dbClient;
+
+    if (!client) {
+      res.status(400).json({ error: "Invalid session" });
+      return;
+    }
+
     //control the id syntax
     if (!testUuid(verse_id)) {
       res.status(400).json({ error: "Invalid verse ID" });
@@ -195,14 +246,14 @@ export const deleteVerseController = async (req: Request, res: Response) => {
     }
 
     //check if the deleted verse existed before, if not the deleteVerse service fucntion will return false
-    const canBeDeleted = await getVerseById(verse_id);
+    const canBeDeleted = await getVerseById(verse_id, client);
     if (!canBeDeleted) {
       res.status(404).json({ error: "Verse not found" });
       return;
     }
 
     //delete the verse
-    deleteVerse(verse_id);
+    deleteVerse(verse_id, client);
 
     //return a success message that implies the verse is deleted successully
     res.json({ message: "Verse deleted successfully" });
